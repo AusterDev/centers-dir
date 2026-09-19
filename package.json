@@ -7,14 +7,25 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "migrate": "wrangler d1 execute centersdir --local --file=./schemas/init.sql",
+    "build": "migrate && astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "generate-types": "wrangler types"
   },
   "dependencies": {
-    "astro": "^7.3.3"
+    "@astrojs/cloudflare": "^14.3.2",
+    "@cloudflare/workers-types": "^5.20260917.1",
+    "@googleapis/oauth2": "^10.0.0",
+    "@upstash/redis": "^1.38.4",
+    "astro": "^7.3.3",
+    "jsonwebtoken": "^9.0.3",
+    "wrangler": "^4.133.0"
   },
   "allowScripts": {
     "esbuild": true
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10"
   }
 }

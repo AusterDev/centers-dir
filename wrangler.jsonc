@@ -1,0 +1,23 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"compatibility_date": "2026-09-16",
+	"compatibility_flags": [
+		"global_fetch_strictly_public"
+	],
+	"name": "centers-dir",
+	"main": "@astrojs/cloudflare/entrypoints/server",
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"d1_databases": [
+		{
+			"binding": "centersdir",
+			"database_name": "centersdir",
+			"database_id": "d5d24033-7e6a-4221-860c-1ee01d48fa4e"
+		}
+	]
+}
