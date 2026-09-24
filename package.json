@@ -20,7 +20,8 @@
     "@upstash/redis": "^1.38.4",
     "astro": "^7.3.3",
     "jsonwebtoken": "^9.0.3",
-    "wrangler": "^4.133.0"
+    "wrangler": "^4.133.0",
+    "zod": "^4.6.5"
   },
   "allowScripts": {
     "esbuild": true
