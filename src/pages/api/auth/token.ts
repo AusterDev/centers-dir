@@ -1,14 +1,14 @@
 import type { APIContext } from "astro";
 import { Auth } from "../../../lib/auth";
+import { env } from "cloudflare:workers";
 
-export async function GET({ request, locals }: APIContext) {
-    const auth = new Auth(locals.runtime.env.DB);
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader) return new Response();
+export async function GET({ cookies, locals }: APIContext) {
+    const token = cookies.get("auth_token");
+    if (!token) return new Response("error -- no token in cookies");
 
-    const token = authHeader.replaceAll("Bearer ", "");
+    const auth = new Auth(env.DB);
     try {
-        const u = await auth.getUser(token, false);
+        const u = await auth.getUser(token.value, false);
 
         return new Response(JSON.stringify(u));
     } catch (error) {
@@ -17,19 +17,17 @@ export async function GET({ request, locals }: APIContext) {
     }
 }
 
-export async function POST({ request, locals }: APIContext) {
+export async function POST({ cookies, request, locals }: APIContext) {
     try {
+        const token = cookies.get("auth_token");
+        if (!token) return new Response("err -- no token in cookies");
+
         const body = (request.json() as unknown) as GetTokenRequest;
         if (body.getNewAccessToken !== true) return new Response("wtv i put here later");
 
-        const auth = new Auth(locals.runtime.env.DB);
+        const auth = new Auth(env.DB);
 
-        const authHeader = request.headers.get("Authorization");
-        if (!authHeader) return new Response();
-
-        const token = authHeader.replaceAll("Bearer ", "");
-
-        const u = await auth.getUser(token, true);
+        const u = await auth.getUser(token.value, true);
 
         return new Response(JSON.stringify(u));
     } catch (error) {

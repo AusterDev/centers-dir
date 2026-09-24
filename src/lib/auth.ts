@@ -8,7 +8,7 @@ import { PERMISSIONS, PermsManager } from "./permissions";
 import { REDIS } from "./cache";
 
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
-const GOOGLE_API = "https://googleapis.com/oauth2/v3/";
+const GOOGLE_API = "https://www.googleapis.com/oauth2/v3/";
 
 const SCOPE = [
     "userinfo.profile",
@@ -41,36 +41,33 @@ export const Google = {
             "redirect_uri": import.meta.env.GOOGLE_CALLBACK_URI,
             "grant_type": "authorization_code",
         });
+
         const res = await fetch(GOOGLE_TOKEN_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "application/json",
             },
-            body: params.toString(),
+            body: params,
         });
-
         const d = await res.json();
         if (!res.ok) throw new Error(`google code exchange failed: ${d.error}`);
 
         return d;
     },
 
-    async getUser(token: string): Promise<GoogleUser> {
-        const url = GOOGLE_API + "userinfo";
-        const res = await fetch(url, {
-            method: "GET",
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
-            }
-        });
+    getUser(idToken: string): GoogleUser {
+        const d: any = jwt.decode(idToken);
 
-        const d = await res.json()
-        if (!res.ok) throw new Error(`fetching userinfo for this user failed: ${d.error}`);
+        if (!d) {
+            throw new Error("Failed to decode Google ID token");
+        }
 
         const { name, email, picture } = d;
 
-        if (!name || !email || !picture) throw new Error("malformed google user: essential fields like name, email or picture are/is missing.");
+        if (!name || !email || !picture) {
+            throw new Error("malformed google user: essential fields like name, email or picture are missing.");
+        }
 
         return {
             name: d.name,
@@ -128,6 +125,8 @@ export class Auth {
 
             const user = await getUser(this.db, tok.sub.id);
 
+            if (!user) throw new ApplicationError("NULL_ERROR", "user is null");
+            
             if (getNewAccessToken) {
                 if (tok.typ !== "refresh") throw new UnexpectedRequestError({ typ: "refresh" }, { typ: tok.typ }, "token must be a refresh token");
 

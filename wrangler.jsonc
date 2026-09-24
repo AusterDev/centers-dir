@@ -15,7 +15,7 @@
 	},
 	"d1_databases": [
 		{
-			"binding": "centersdir",
+			"binding": "DB",
 			"database_name": "centersdir",
 			"database_id": "d5d24033-7e6a-4221-860c-1ee01d48fa4e"
 		}

@@ -36,7 +36,7 @@ export function generateTokens(userID: number): TokenBudle {
     };
     const accessToken = jwt.sign(accessJWT, import.meta.env.JWT_SECRET);
 
-    const refreshExp = Math.floor(Date.now() / 1000) + (7 * 60 * 60);
+    const refreshExp = Math.floor(Date.now() / 1000) + (7 * 60 * 60 * 24);
     const refreshJWT: JWT = {
         exp: refreshExp,
         sub: sub,

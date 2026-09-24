@@ -1,5 +1,5 @@
 ---
-
+import { Google } from "../lib/auth";
 ---
 
 <html lang="en">
@@ -12,6 +12,8 @@
 		<title>Astro</title>
 	</head>
 	<body>
-		<h1>Astro</h1>
+		<a href={Google.oauth2()}>Sign in with Google</a>
+
+		<p>{Google.oauth2()}</p>
 	</body>
 </html>

@@ -1,0 +1,24 @@
+---
+import { ApplicationError } from "../lib/errors";
+
+type AppError = {
+    status: number;
+    error: ApplicationError;
+}
+
+const params = Astro.url.searchParams;
+let error: AppError = {
+    status: 400,
+    error: new ApplicationError("MALFORMED_REQUEST", "Malformed request")
+};
+
+if (params.get("status") || params.get("error")) {
+    try {
+        error.status = (params.get("status") as unknown) as number;
+        error.error = (params.get("error") as unknown) as ApplicationError;
+    } catch (error) {}
+
+}
+---
+
+{error}

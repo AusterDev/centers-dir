@@ -1,6 +1,7 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import type { User } from "../models/common";
 import { PERMISSIONS, PermsManager } from "./permissions";
+import { RecordConflictError } from "./errors";
 
 type UserBasic = {
     email: string,
@@ -19,23 +20,27 @@ export async function createUser(db: D1Database, basics: UserBasic): Promise<Use
     const perms = PermsManager.combine(PERMISSIONS.CREATE_POST, PERMISSIONS.DELETE_POST, PERMISSIONS.EDIT_POST);
 
     try {
-        const newUser = await db.prepare(query)
-            .bind(basics.email, basics.source, perms)
+        await db.prepare(query)
+            .bind(basics.email, basics.username, basics.source, perms)
+            .run();
+        
+        const newUser = await db.prepare("SELECT * FROM users WHERE email = ?")
+            .bind(basics.email)
             .first<User>();
 
         if (!newUser) {
-            throw new Error("failed to create user");
+            throw new Error("failed to fetch newly created user");
         }
         return newUser;
     } catch (error: any) {
         if (error.message && error.message.includes("UNIQUE constraint failed")) {
-            throw new Error("user with this email already exists");
+            throw new RecordConflictError("email", error);
         }
         throw error;
     }
 }
 
-export async function getUser(db: D1Database, id?: number, email?: string): Promise<User> {
+export async function getUser(db: D1Database, id?: number | null, email?: string): Promise<User | null> {
     const selectionMethod = id && !email ? "id" : "email";
     const query = `SELECT * FROM users WHERE ${selectionMethod} = ?`;
 
@@ -44,9 +49,6 @@ export async function getUser(db: D1Database, id?: number, email?: string): Prom
             .bind(id || email)
             .first<User>();
 
-        if (!user) {
-            throw new Error("user does not exist");
-        }
         return user;
     } catch (error: any) {
         throw error;

@@ -63,8 +63,12 @@ export class TokenRevokedError extends ApplicationError {
 }
 export class RecordConflictError extends ApplicationError {
     override name = "RecordConflictError";
-    constructor(error?: any) {
+    public field: string;
+
+    constructor(field: string, error?: any) {
         super("RECORD_CONFLICT", error);
+
+        this.field = field;
     }
 }
 
@@ -72,5 +76,23 @@ export class RecordNotFoundError extends ApplicationError {
     override name = "RecordNotFoundError";
     constructor(error?: any) {
         super("RECORD_NOT_FOUND", error);
+    }
+}
+
+export class InternalServerError extends ApplicationError {
+    override name = "InternalServerError";
+    constructor(error?: any) {
+        super("INTERNAL_SERVER_ERROR", error);
+    }
+}
+
+export class BadRequestError extends ApplicationError {
+    override name = "APIBadRequest";
+    public fields: string[];
+
+    constructor(fields: string[], error?: any) {
+        super("API_BAD_REQUEST", error);
+
+        this.fields = fields;
     }
 }
