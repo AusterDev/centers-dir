@@ -4,6 +4,7 @@ import { env } from "cloudflare:workers";
 import { BadRequestError } from "../../../lib/errors";
 import { GetUsersRequest } from "../../../requests/api/user";
 import { PERMISSIONS, PermsManager } from "../../../lib/permissions";
+import { buildResponse, handleErrors } from "../../../responses/wrapper";
 
 /**
  * Get information about a user. 
@@ -12,7 +13,7 @@ import { PERMISSIONS, PermsManager } from "../../../lib/permissions";
  * Bypass response trimming if current user has ADMIN permission.
  * @returns Response
  */
-export async function GET({ cookies, request }: APIContext) {
+export async function GET({ cookies, logger, request }: APIContext) {
     try {
         const token = cookies.get("access_token");
         if (!token) throw new BadRequestError(["access_token"]);
@@ -45,6 +46,9 @@ export async function GET({ cookies, request }: APIContext) {
             query += ` WHERE ` + conditions.join(" AND ");
         }
 
+        query += ` LIMIT ? OFFSET ?`;
+        bindings.push(req.select, req.offset);
+
         const stmt = env.DB.prepare(query);
         const { results: targetUsers } = await stmt.bind(...bindings).all();
 
@@ -61,16 +65,9 @@ export async function GET({ cookies, request }: APIContext) {
             return targetUser;
         });
 
-        return new Response(JSON.stringify(sanitizedUsers), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-        });
+        return buildResponse(200, sanitizedUsers, null);
 
     } catch (error: any) {
-        console.error("Error fetching user info:", error);
-        return new Response(JSON.stringify({ error: error?.message || "Internal server error" }), {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-        });
+        return handleErrors(logger, error);
     }
 }

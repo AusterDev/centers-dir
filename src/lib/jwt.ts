@@ -5,7 +5,6 @@ export type TokenBudle = {
     refreshToken: string,
 }
 
-
 export type JWT = {
     exp: number,
     sub: {
@@ -63,7 +62,7 @@ export function generateTokens(userID: number): TokenBudle {
 export function verifyToken(token: string): JWT {
     const payload = (jwt.verify(token, import.meta.env.JWT_SECRET) as unknown) as JWT;
 
-    if (payload.exp > Math.floor(Date.now() / 1000)) {
+    if (payload.exp < Math.floor(Date.now() / 1000)) {
         throw new jwt.TokenExpiredError("token expired", new Date(payload.exp));
     }
     return payload;

@@ -112,8 +112,9 @@ export class Auth {
     }
 
     public async isBlocked(token: JWT) {
-        if (await REDIS.get(token.tokenID)) {
-            return true;
+        const tok = await REDIS.get(token.tokenID)
+        if (tok) {
+            return tok === "refresh";
         }
         return false;
     }

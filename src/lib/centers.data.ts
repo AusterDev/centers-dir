@@ -43,7 +43,7 @@ export async function createCenter(db: D1Database, basics: CenterBasic): Promise
     }
 }
 
-export async function getCenter(db: D1Database, id: string): Promise<Center> {
+export async function getCenter(db: D1Database, id: number): Promise<Center> {
     const query = `SELECT * FROM centers WHERE id = ?`;
 
     try {
@@ -60,17 +60,17 @@ export async function getCenter(db: D1Database, id: string): Promise<Center> {
     }
 }
 
-export async function editCenter(db: D1Database, id: string, edit: CenterEdit): Promise<Center> {
+export async function editCenter(db: D1Database, id: number, edit: CenterEdit): Promise<Center> {
     const fields: string[] = [];
     const values: any[] = [];
 
     if (edit.centerName) {
-        fields.push("centerName = ?");
-        values.push(edit.centerName);
+        fields.push("centerName LIKE ?");
+        values.push(`%${edit.centerName}%`);
     }
     if (edit.centerAddress) {
-        fields.push("centerAddress = ?");
-        values.push(edit.centerAddress);
+        fields.push("centerAddress LIKE ?");
+        values.push(`%${edit.centerAddress}%`);
     }
     if (edit.areaPin) {
         fields.push("areaPin = ?");

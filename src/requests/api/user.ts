@@ -1,12 +1,11 @@
 import z from "zod";
-
-const select = z.number().max(40);
-const order = z.enum(["ascending", "descending"]);
+import { offset, order, select } from "./common";
 
 export const GetUsersRequest = z.object({
     id: z.string().optional(),
-    email: z.string().optional(),
+    email: z.email().optional(),
     username: z.string().optional(),
     select: select,
-    order: order,
-})
+    order: order.default("ascending"),
+    offset: offset,
+});

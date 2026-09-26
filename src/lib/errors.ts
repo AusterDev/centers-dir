@@ -96,3 +96,14 @@ export class BadRequestError extends ApplicationError {
         this.fields = fields;
     }
 }
+
+export class MissingPermissionsError extends ApplicationError {
+    override name = "MissingPermissionsError";
+    public fields: number[];
+
+    constructor(fields: number[], error?: any) {
+        super("MISSING_PERMISSIONS", error);
+
+        this.fields = fields;
+    }
+}
