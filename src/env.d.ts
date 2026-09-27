@@ -1,9 +1,16 @@
 /// <reference types="astro/client" />
+/// <reference types="@cloudflare/workers-types" />
 
-interface Env {
-  DB: D1Database;
-}
+import type { TokenBudle } from "./lib/jwt";
+import type { User } from "./models/common";
 
-declare module "cloudflare:workers" {
-  export const env: Env;
+declare global {
+  namespace App {
+    interface Locals {
+      currentUser: {
+        user: User;
+        tokens: TokenBudle | null;
+      };
+    }
+  }
 }

@@ -13,14 +13,11 @@ import { buildResponse, handleErrors } from "../../../responses/wrapper";
  * Bypass response trimming if current user has ADMIN permission.
  * @returns Response
  */
-export async function GET({ cookies, logger, request }: APIContext) {
+export async function GET({ locals, logger, request }: APIContext) {
     try {
-        const token = cookies.get("access_token");
-        if (!token) throw new BadRequestError(["access_token"]);
-
-        const auth = new Auth(env.DB);
-        const { user: currentUser } = await auth.getUser(token.value, false);
-
+        const { currentUser: userBundle } = locals;
+        const currentUser = userBundle.user;
+        
         const url = new URL(request.url);
         const reqData = Object.fromEntries(url.searchParams.entries());
         const req = await GetUsersRequest.parseAsync(reqData);

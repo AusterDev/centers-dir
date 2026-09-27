@@ -1,7 +1,6 @@
 import type { APIContext } from "astro";
-import { Auth } from "../../../lib/auth";
 import { env } from "cloudflare:workers";
-import { BadRequestError, MissingPermissionsError } from "../../../lib/errors";
+import { MissingPermissionsError } from "../../../lib/errors";
 import { PERMISSIONS, PermsManager } from "../../../lib/permissions";
 import { GetCentersRequest, PostCentersRequest, UpdateCenterRequest } from "../../../requests/api/centers";
 import { createCenter, editCenter, getCenter } from "../../../lib/centers.data";
@@ -11,23 +10,18 @@ import { buildResponse, handleErrors } from "../../../responses/wrapper";
  * List a new center. 
  * @returns Response
  */
-export async function POST({ cookies, logger, request }: APIContext) {
+export async function POST({ locals, logger, request }: APIContext) {
     try {
-        const token = cookies.get("access_token");
-        console.log(token)
-        if (!token) throw new BadRequestError(["access_token"]);
-
-        const auth = new Auth(env.DB);
-        const { user } = await auth.getUser(token.value, false);
+        const user = locals.currentUser.user;
 
         const requiredPerms = PermsManager.combine(PERMISSIONS.CREATE_POST);
 
         if (!PermsManager.has(user.permissions, requiredPerms)) {
-            
+
         }
         const data = await request.json();
         const req = await PostCentersRequest.parseAsync(data);
-        
+
         const newCenter = await createCenter(env.DB, {
             centerName: req.name,
             centerAddress: req.address,
@@ -47,13 +41,9 @@ export async function POST({ cookies, logger, request }: APIContext) {
  * Get listed or unlisted centers.
  * @returns Response
  */
-export async function GET({ cookies, logger, request }: APIContext) {
+export async function GET({ locals, logger, request }: APIContext) {
     try {
-        const token = cookies.get("access_token");
-        if (!token) throw new BadRequestError(["access_token"]);
-
-        const auth = new Auth(env.DB);
-        const { user } = await auth.getUser(token.value, false);
+        const user = locals.currentUser.user;
 
         const url = new URL(request.url);
         const reqData = Object.fromEntries(url.searchParams.entries());
@@ -101,20 +91,15 @@ export async function GET({ cookies, logger, request }: APIContext) {
     }
 }
 
-export async function PUT({ cookies, logger, request }: APIContext) {
+export async function PUT({ locals, logger, request }: APIContext) {
     try {
-        const token = cookies.get("access_token");
-        console.log(token)
-        if (!token) throw new BadRequestError(["access_token"]);
-
-        const auth = new Auth(env.DB);
-        const { user } = await auth.getUser(token.value, false);
+        const user = locals.currentUser.user;
 
         const requiredPerms = PermsManager.combine(PERMISSIONS.EDIT_POST);
 
         const data = await request.json();
         const req = await UpdateCenterRequest.parseAsync(data);
-        
+
         const existingCenter = await getCenter(env.DB, req.id);
         if (existingCenter.originalPosterID !== user.id) {
             if (PermsManager.has(user.permissions, requiredPerms)) {
