@@ -1,5 +1,6 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import type { Experience } from "../models/common";
+import { RecordNotFoundError } from "./errors";
 
 type ExperienceBasic = {
     msg: string;
@@ -15,12 +16,21 @@ type ExperienceBasic = {
 
 type ExperienceEdit = {
     msg?: string;
+    originalPosterID: number;
+}
+
+type ExperienceGet = {
+    centerID: number,
+    id?: number,
     overallRating?: number;
     supportiveStaffRating?: number;
     infraRating?: number;
     corruptionRating?: number;
     pcpRating?: number;
     accessibilityRating?: number;
+    select?: number;
+    order?: "ascending" | "descending";
+    offset?: number;
 }
 
 export async function createExperience(db: D1Database, basics: ExperienceBasic): Promise<Experience> {
@@ -57,24 +67,58 @@ export async function createExperience(db: D1Database, basics: ExperienceBasic):
     }
 }
 
-export async function getExperience(db: D1Database, id: string): Promise<Experience> {
-    const query = `SELECT * FROM experiences WHERE id = ?`;
-
+export async function getExperience(db: D1Database, basics: ExperienceGet): Promise<Experience[]> {
     try {
-        const experience = await db.prepare(query)
-            .bind(id)
-            .first<Experience>();
+        const conditions: string[] = [];
+        const bindings: any[] = [];
 
-        if (!experience) {
-            throw new Error("experience does not exist");
+        if (basics.id) {
+            conditions.push("id = ?");
+            bindings.push(basics.id);
         }
-        return experience;
+        if (basics.overallRating) {
+            conditions.push("overallRating = ?");
+            bindings.push(basics.overallRating);
+        }
+        if (basics.accessibilityRating) {
+            conditions.push("accessibilityRating = ?");
+            bindings.push(basics.accessibilityRating);
+        }
+        if (basics.pcpRating) {
+            conditions.push("pcpRating = ?");
+            bindings.push(basics.pcpRating);
+        }
+        if (basics.supportiveStaffRating) {
+            conditions.push("supportiveStaffRating = ?");
+            bindings.push(basics.supportiveStaffRating);
+        }
+        if (basics.corruptionRating) {
+            conditions.push("corruptionRating = ?");
+            bindings.push(basics.supportiveStaffRating);
+        }
+        if (basics.infraRating) {
+            conditions.push("infraRating = ?");
+            bindings.push(basics.infraRating);
+        }
+
+        let query = `SELECT * FROM experiences`;
+        if (conditions.length > 0) {
+            query += ` WHERE ` + conditions.join(" AND ");
+        }
+
+        query += ` LIMIT ? OFFSET ?`;
+        bindings.push(basics.select, basics.offset);
+
+        const stmt = db.prepare(query);
+        const { results } = await stmt.bind(...bindings).all();
+
+        return results as Experience[];
     } catch (error: any) {
         throw error;
     }
 }
 
-export async function editExperience(db: D1Database, id: string, edit: ExperienceEdit): Promise<Experience> {
+export async function editExperience(db: D1Database, id: number, edit: ExperienceEdit): Promise<Experience> {
     const fields: string[] = [];
     const values: any[] = [];
 
@@ -82,41 +126,17 @@ export async function editExperience(db: D1Database, id: string, edit: Experienc
         fields.push("msg = ?");
         values.push(edit.msg);
     }
-    if (edit.overallRating !== undefined) {
-        fields.push("overallRating = ?");
-        values.push(edit.overallRating);
-    }
-    if (edit.supportiveStaffRating !== undefined) {
-        fields.push("supportiveStaffRating = ?");
-        values.push(edit.supportiveStaffRating);
-    }
-    if (edit.infraRating !== undefined) {
-        fields.push("infraRating = ?");
-        values.push(edit.infraRating);
-    }
-    if (edit.corruptionRating !== undefined) {
-        fields.push("corruptionRating = ?");
-        values.push(edit.corruptionRating);
-    }
-    if (edit.pcpRating !== undefined) {
-        fields.push("pcpRating = ?");
-        values.push(edit.pcpRating);
-    }
-    if (edit.accessibilityRating !== undefined) {
-        fields.push("accessibilityRating = ?");
-        values.push(edit.accessibilityRating);
-    }
 
     if (fields.length === 0) {
         throw new Error("no fields were provided to edit");
     }
 
-    values.push(id);
+    values.push(id, edit.originalPosterID);
 
     const query = `
         UPDATE experiences
         SET ${fields.join(", ")}
-        WHERE id = ?
+        WHERE id = ? AND originalPosterID = ?
         RETURNING *;
     `;
 

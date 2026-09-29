@@ -7,7 +7,8 @@ import {
     TokenMalformedError, 
     TokenRevokedError, 
     TokenTimedoutError, 
-    ApplicationError 
+    ApplicationError, 
+    RatelimitHitError
 } from "../lib/errors";
 
 export function buildResponse(status: number, d: any, error: APIError | null) {
@@ -90,6 +91,14 @@ export function handleErrors(logger: AstroRuntimeLogger, err: unknown) {
         });
     }
 
+    if (error instanceof RatelimitHitError) {
+        return buildResponse(429, null, {
+            cause: "You are being ratelimitted.",
+            affectedFields: [],
+            type: error.typ,
+        });
+    }
+    
     return buildResponse(500, null, {
         cause: error.message || "Internal server error",
         affectedFields: [],

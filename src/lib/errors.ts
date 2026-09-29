@@ -107,3 +107,11 @@ export class MissingPermissionsError extends ApplicationError {
         this.fields = fields;
     }
 }
+
+export class RatelimitHitError extends ApplicationError {
+    override name = "RatelimitHitError";
+    
+    constructor(error?: any) {
+        super("RATELIMIT_HIT", error);
+    }
+}

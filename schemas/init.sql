@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS centers (
     areaPin INTEGER NOT NULL,
     averageRating INTEGER DEFAULT 0,
     gMapsLink TEXT NOT NULL,
-
+    
     originalPosterID INTEGER DEFAULT 0,
     
     FOREIGN KEY (originalPosterID) REFERENCES users(id) ON DELETE SET NULL

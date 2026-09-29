@@ -8,7 +8,6 @@ import { PERMISSIONS, PermsManager } from "./permissions";
 import { REDIS } from "./cache";
 
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
-const GOOGLE_API = "https://www.googleapis.com/oauth2/v3/";
 
 const SCOPE = [
     "userinfo.profile",
@@ -50,7 +49,7 @@ export const Google = {
             },
             body: params,
         });
-        const d = await res.json();
+        const d = await res.json() as any;
         if (!res.ok) throw new Error(`google code exchange failed: ${d.error}`);
 
         return d;

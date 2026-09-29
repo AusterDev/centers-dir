@@ -26,7 +26,7 @@ export function generateTokens(userID: number): TokenBudle {
         id: userID,
     }
 
-    const accessExp = Math.floor(Date.now() / 1000) + (15 * 60);
+    const accessExp = Math.floor(Date.now() / 1000) + (7 * 60 * 60);
     const accessJWT: JWT = {
         exp: accessExp,
         sub: sub,

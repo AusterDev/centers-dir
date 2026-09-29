@@ -1,8 +1,9 @@
 import type { APIContext, MiddlewareNext } from "astro";
 import { Auth } from "./lib/auth";
 import { env } from "cloudflare:workers";
-import { BadRequestError, TokenMalformedError } from "./lib/errors";
+import { BadRequestError, RatelimitHitError, TokenMalformedError } from "./lib/errors";
 import { handleErrors } from "./responses/wrapper";
+import { RatelimitManager } from "./lib/ratelimit";
 
 const PROTECTED_ROUTES = [
     "/api/auth/users",
@@ -35,6 +36,9 @@ export async function onRequest(context: APIContext, next: MiddlewareNext) {
                 return context.redirect("/auth");
             }
 
+            if (await RatelimitManager.examine(currentUser.user.id)) {
+                throw new RatelimitHitError();
+            }
             context.locals.currentUser = currentUser;
         }
 

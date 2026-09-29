@@ -2,18 +2,18 @@ import { REDIS } from "./cache"
 import { ApplicationError } from "./errors";
 
 export const RatelimitManager = {
-    async update(userID: string, ttl: number, counter: number) {
+    async update(userID: number, ttl: number, counter: number) {
         try {
-            await REDIS.setex(userID, ttl, counter + 1);
+            await REDIS.setex(`${userID}`, ttl, counter + 1);
         } catch (error) {
             throw new ApplicationError("TYPE_ERROR", error);
         }
     },
 
-    async examine(userID: string) {
+    async examine(userID: number) {
         try {
-            const counter = Number(await REDIS.getex(userID)) || 0;
-            let ttl = Number(await REDIS.ttl(userID));
+            const counter = Number(await REDIS.getex(`${userID}`)) || 0;
+            let ttl = Number(await REDIS.ttl(`${userID}`));
 
             if (ttl < 0) {
                 ttl = 5;
