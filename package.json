@@ -19,6 +19,8 @@
     "@googleapis/oauth2": "^10.0.0",
     "@upstash/redis": "^1.38.4",
     "astro": "^7.3.3",
+    "country-state-city": "^3.2.1",
+    "drizzle-orm": "^1.0.0-rc.4",
     "jsonwebtoken": "^9.0.3",
     "wrangler": "^4.133.0",
     "zod": "^4.6.5"
@@ -27,6 +29,7 @@
     "esbuild": true
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.10"
+    "@types/jsonwebtoken": "^9.0.10",
+    "drizzle-kit": "^1.0.0-rc.4"
   }
 }

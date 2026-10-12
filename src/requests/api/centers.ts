@@ -1,5 +1,17 @@
 import z from "zod";
 import { offset, order, select } from "./common";
+import { getAllStates } from "country-state-city/lib/state";
+import { Country } from "country-state-city";
+
+const mediums = [
+    "English",
+    "Hindi",
+];
+const coursesAvailable = [
+    "Senior Secondary",
+    "Secondary",
+    "OBE",
+]
 
 const areaPin = z.number().refine((n) => {
     let tmp = Math.abs(n);
@@ -16,21 +28,39 @@ const areaPin = z.number().refine((n) => {
     return count === 5;
 });
 
-export const PostCentersRequest = z.object({
-    name: z.string().max(100),
+const location = {
     address: z.string().max(400),
     areaPin: areaPin,
+    district: z.string().max(400),
+    state: z.string().refine((s) => getAllStates().some(state => state.name === s)),
+    country: z.string().refine((c) => Country.getAllCountries().some(cntry => cntry.name === c)),
+};
+
+const common = {
+    aiCode: z.string(),
+    centerActive: z.boolean().default(true),
+    studyMedium: z.enum(mediums),
+    udiseCODE: z.number().optional(),
+    coursesAvailable: z.enum(coursesAvailable),
+    gender: z.enum(["Co-Ed", "All-Boys", "All-Girls"]),
+    mobileNumber: z.string(),
+    emailID: z.email(),
+}
+
+export const PostCentersRequest = z.object({
+    name: z.string().max(100),
     gmapsLink: z.url(),
+    ...common,
 });
 
 export const GetCentersRequest = z.object({
-    address: z.string().max(400).optional(),
+    ...location,
     name: z.string().optional(),
-    areaPin: areaPin.optional(),
     originalPosterID: z.number().optional(),
     select: select,
     order: order.default("ascending"),
     offset: offset,
+    ...common,
 });
 
 export const UpdateCenterRequest = z.object({
@@ -39,4 +69,5 @@ export const UpdateCenterRequest = z.object({
     address: z.string().max(400).optional(),
     areaPin: areaPin.optional(),
     gMapsLink: z.url().optional(),
+    ...common,
 });

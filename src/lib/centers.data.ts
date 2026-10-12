@@ -13,6 +13,7 @@ type CenterEdit = {
     centerName?: string;
     centerAddress?: string;
     areaPin?: number;
+    averageRating?: number;
     gMapsLink?: string;
 }
 
@@ -26,10 +27,10 @@ export async function createCenter(db: D1Database, basics: CenterBasic): Promise
     try {
         const newCenter = await db.prepare(query)
             .bind(
-                basics.centerName, 
-                basics.centerAddress, 
-                basics.areaPin, 
-                basics.gMapsLink, 
+                basics.centerName,
+                basics.centerAddress,
+                basics.areaPin,
+                basics.gMapsLink,
                 basics.originalPosterID ?? null
             )
             .first<Center>();
@@ -75,6 +76,10 @@ export async function editCenter(db: D1Database, id: number, edit: CenterEdit): 
     if (edit.areaPin) {
         fields.push("areaPin = ?");
         values.push(edit.areaPin);
+    }
+    if (edit.averageRating) {
+        fields.push("averageRating = ?");
+        values.push(edit.averageRating);
     }
     if (edit.gMapsLink) {
         fields.push("gMapsLink = ?");
